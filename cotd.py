@@ -32,7 +32,7 @@ if __name__ == "__main__":
         help="turns on debug mode", type=bool, default=False)
     parser.add_argument("-v", "--verbose",
         help="shows state and compute time of \
-                compute-intensive functions", type=int, default=0)
+                compute-intensive functions", type=int, default=1)
     parser.add_argument("-a", "--algorithm",
         help="sets the primary algorithm for circle detection", type=int, default=1)
     args = parser.parse_args()
