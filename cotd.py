@@ -25,14 +25,6 @@ class State(Enum):
     fishing = 2
 
 if __name__ == "__main__":
-    """ from java espresso22
-        FPS: 4
-        Debug Mode: false
-        Robot Autodelay MS: 10
-        Gauge Computations Only: false
-        Save Configuration: false
-        Load Configuration: false
-    """
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--fps", 
         help="set program refresh rate for screencapture", type=int, default=10)
@@ -124,6 +116,3 @@ if __name__ == "__main__":
         
         time_ref = time()
         sleep(1/args.fps)
-
-
-    

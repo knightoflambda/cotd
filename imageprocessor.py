@@ -145,14 +145,3 @@ class CircleDetector:
             cv.circle(canvas, (x, y), r, (0, 0, 255), 2)
 
         return canvas
-
-    
-if __name__ == "__main__":
-    minr, maxr = CATCH_CIRCLE_R
-    cda = ValueDiff1(bg_ref="./res/background.jpg", minr=minr, maxr=maxr)
-    cd = CircleDetector(cda)
-    im_reg = cv.imread("./res/pos_circle.jpg")
-    tup = cd.algo_circle_xyr(im_reg)
-
-    cv.imshow("test", cd.draw_circle(im_reg, tup))
-    cv.waitKey()

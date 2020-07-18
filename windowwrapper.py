@@ -54,9 +54,3 @@ class Window:
         win32gui.DeleteObject(dataBitMap.GetHandle())
 
         return cvtColor(img, COLOR_BGRA2BGR)
-
-import cv2
-if __name__ == "__main__":
-    w = Window()
-    mat = w.screenshot2mat(230, 532, 74,74)
-    cv2.imwrite("./res/frod.jpg", mat)
