@@ -6,10 +6,10 @@ import logging
 from windowwrapper import Window
 from enum import Enum
 from time import sleep
-from time import time
+from datetime import datetime
 
 VERSION = "LATTE (v0.31)"
-FIRST_BAIT_APOS = (132, 588)
+FIRST_BAIT_APOS = (101, 553) #101, 553:65x65 + 11x65
 
 CATCH_AREA_POINTS = 500, 130
 CATCH_AREA_DIMS = 475, 350
@@ -60,6 +60,8 @@ if __name__ == "__main__":
     bstacks = Window("BlueStacks")
     bg_path = "./res/background.jpg"
     frod_path = "./res/frod_pos.jpg"
+    brocco_path = "./res/brocco.jpg"
+
 
     catch_detect_algo = None
     if args.algorithm == 0:
@@ -70,20 +72,25 @@ if __name__ == "__main__":
         catch_detect_algo = imageprocessor.ValueDiff1(bg_path, imageprocessor.CATCH_CIRCLE_R)
     
     frod_algo = imageprocessor.TemplateMatch(frod_path)
+    brocco_algo = imageprocessor.TemplateMatch(brocco_path, gray=False, thresh=0.7)
+
+    brocco_detector = imageprocessor.ObjectDetector(brocco_algo)
     frod_detector = imageprocessor.ObjectDetector(frod_algo)
     catch_detector = imageprocessor.ObjectDetector(catch_detect_algo)
+
+    bait_coords_center = ()
 
     # initialize variables
     prev_state = None
     state = State.load_bait
-    time_ref = time()
+    time_ref = datetime.now()
 
     """ import numpy as np
     test_img = np.zeros(shape=(72,72,3)).astype('uint8')
     cv2.imshow('debug',test_img)
     cv2.moveWindow('debug',1720,600)
     cv2.waitKey(1)  """
-
+    import cv2
     while True:
         if args.verbose == 1:
             if prev_state != state:
@@ -94,15 +101,27 @@ if __name__ == "__main__":
             frame = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
             catch = catch_detector.get_detected_coords(frame)
             if catch:
-                bstacks.click(FIRST_BAIT_APOS)
+                for i in range(11):
+                    x, y = FIRST_BAIT_APOS
+                    x = x + (i * 64) + (i * 10)
+                    bait_frame = bstacks.screenshot2mat((x, y), (64, 64))
+                    brocco = brocco_detector.get_detected_coords(bait_frame)
+                    if brocco:
+                        if args.verbose == 1:
+                            logger.info("brocco found in index %d", i)
+                        bait_coords_center = (x + 32, y + 32)
+                        break
+                bstacks.click(bait_coords_center)
                 x, y, r = catch
                 bstacks.click(CATCH_AREA_POINTS, (x,y))
                 state = State.waiting
         elif state == State.waiting:
-            if (time() - time_ref) > 11:
+            delta = datetime.now() - time_ref
+            seconds = delta.total_seconds()
+            if (seconds) > 15:
                 if args.verbose == 1:
                     logger.info("Deadlocked in wait, resetting state...")
-                time_ref = time()
+                time_ref = datetime.now()
                 state = State.load_bait
 
             frame = bstacks.screenshot2mat(FROD_AREA_POINTS, FROD_AREA_DIMS)
@@ -121,7 +140,7 @@ if __name__ == "__main__":
                     x, y, r = catch
                     bstacks.click(CATCH_AREA_POINTS, (x, y))
         
-        time_ref = time()
+        #time_ref = datetime.now()
         """ if args.debug:
             frame = bstacks.screenshot2mat(FROD_AREA_X, FROD_AREA_Y, 74, 74)
             frod = frod_detector.get_detected_coords(frame)

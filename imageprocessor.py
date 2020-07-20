@@ -13,13 +13,15 @@ class ObjectDetectionAlgorithm:
     def get_coords(self, rmat) -> tuple:
         pass
 
-    def template_match(self, template, imat, tm_algo=cv.TM_CCOEFF_NORMED):
+    def template_match(self, template, imat, thresh, tm_algo=cv.TM_CCOEFF_NORMED):
         xy = ()
         res = cv.matchTemplate(imat, template, tm_algo)
-        if res >= 0.8:
-            w, h = imat.shape
+        if res >= thresh:
+            if len(imat.shape) == 3:
+                w, h, _ = imat.shape
+            elif len(imat.shape) == 2:
+                w, h = imat.shape
             xy = (round(w/2), round(h/2))
-        
         return xy
 
     def detected_circles(self, imat, dp, mind, p1, p2, minr, maxr, ipyr=0):
@@ -128,13 +130,22 @@ class ValueDiff2(ObjectDetectionAlgorithm):
         pass
 
 class TemplateMatch(ObjectDetectionAlgorithm):
-    def __init__(self, bg_ref):
-        self._bg_ref = cv.imread(bg_ref, 0)
-    
+    def __init__(self, bg_ref, gray=True, thresh=0.8):
+        self._bg_ref = None
+        self._gray = gray
+        self._thresh = thresh
+        if gray:
+            self._bg_ref = cv.imread(bg_ref, 0)
+        else:
+            self._bg_ref = cv.imread(bg_ref)
+
     def get_coords(self, rmat) -> tuple:
         xy = ()
-        imat = cv.cvtColor(rmat, cv.COLOR_BGR2GRAY)
-        xy = super().template_match(self._bg_ref, imat)
+        if self._gray: 
+            imat = cv.cvtColor(rmat, cv.COLOR_BGR2GRAY)
+        else:
+            imat = rmat
+        xy = super().template_match(self._bg_ref, imat, self._thresh)
         return xy
 
 
