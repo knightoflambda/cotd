@@ -23,6 +23,10 @@ class State(Enum):
     fishing = 2
 
 if __name__ == "__main__":
+    fmt_str = '[%(asctime)s] %(levelname)s: %(message)s'
+    logging.basicConfig(level=logging.INFO, format=fmt_str, datefmt='%H:%M:%S')
+    logger = logging.getLogger(__name__)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--fps", 
         help="set program refresh rate for screencapture", type=int, default=10)
@@ -35,12 +39,12 @@ if __name__ == "__main__":
         help="sets the primary algorithm for circle detection", type=int, default=1)
     args = parser.parse_args()
 
-    print("PetPals - Catch of the Day")
+    print("\nPetPals - Catch of the Day")
     print("Author: l4mbda")
-    print("Program Version: %s\n" % VERSION)
-    print("Job 1:21\tthe LORD gave, and the LORD hath taken away;\n\t\tblessed be the name of the LORD\n")
-    print("Psalm 115:1\tNot unto us, O Lord, not unto us, \n\t\tbut unto thy name give glory,\n\t\tfor thy mercy, and for thy truth's sake.\n")
-    print("James 1:17\tEvery good and perfect gift is from above,\n\t\tcoming down from the Father of the heavenly lights\n")
+    print("Program Version: %s" % VERSION)
+    print("\nJob 1:21\tthe LORD gave, and the LORD hath taken away;\n\t\tblessed be the name of the LORD\n")
+    print("\nPsalm 115:1\tNot unto us, O Lord, not unto us, \n\t\tbut unto thy name give glory,\n\t\tfor thy mercy, and for thy truth's sake.\n")
+    print("\nJames 1:17\tEvery good and perfect gift is from above,\n\t\tcoming down from the Father of the heavenly lights\n")
 
     if args.verbose == 1:
         print("Running with params: ")
@@ -48,6 +52,9 @@ if __name__ == "__main__":
         print("\tDebug Mode: %s" % args.debug)
         print("\tVerbose Level: %d" % args.verbose)
         print("\tAlgorithm: %d" % args.algorithm)
+    
+    print()
+    
     
     # initialize tools
     bstacks = Window("BlueStacks")
@@ -80,7 +87,7 @@ if __name__ == "__main__":
     while True:
         if args.verbose == 1:
             if prev_state != state:
-                print("[INFO]: %s" % state)
+                logger.info(str(state))
             prev_state = state
             
         if state == State.load_bait:
@@ -94,7 +101,7 @@ if __name__ == "__main__":
         elif state == State.waiting:
             if (time() - time_ref) > 11:
                 if args.verbose == 1:
-                    print("[INFO]: Deadlocked in wait, resetting state...")
+                    logger.info("Deadlocked in wait, resetting state...")
                 time_ref = time()
                 state = State.load_bait
 
