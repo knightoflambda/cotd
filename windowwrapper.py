@@ -41,10 +41,10 @@ class Window:
 
     def screenshot2mat(self, points: tuple, dims=(), bmpfilename=None):
         x, y = points
+        w, h = dims
         if not dims:
             w, h = self.width, self.height
-        else:
-            w, h = dims
+            
         hwnd = self._hwnd
         wDC = win32gui.GetWindowDC(hwnd)
         dcObj=win32ui.CreateDCFromHandle(wDC)
