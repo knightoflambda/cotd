@@ -4,9 +4,18 @@ from cv2 import cvtColor
 from cv2 import COLOR_BGRA2BGR
 from time import sleep
 
+class WindowNotFoundException(Exception):
+    def __init__(self, winname, message="Window name '{}' not found"):
+        self.winname = winname
+        self.message = message.format(winname)
+        super().__init__(self.message)
+
+
 class Window:
     def __init__(self, winname="BlueStacks"):
         self._hwnd = win32gui.FindWindow(None, winname)
+        if self._hwnd == 0:
+            raise WindowNotFoundException(winname)
         #self.fix_wpos() #might be redundant
         rect = win32gui.GetWindowRect(self._hwnd)
         self.x1 = rect[0]

@@ -1,7 +1,7 @@
 import argparse
 import threading
-import sys
 import imageprocessor
+import logging
 
 from windowwrapper import Window
 from enum import Enum
@@ -53,10 +53,10 @@ if __name__ == "__main__":
     
     # initialize tools
     bstacks = Window("BlueStacks")
-
+    
     catch_minr, catch_maxr = imageprocessor.CATCH_CIRCLE_R
     bg_path = "./res/background.jpg"
-    frod_path = "./res/frod.jpg"
+    #frod_path = "./res/frod.jpg"
 
     cda = None
     if args.algorithm == 0:
