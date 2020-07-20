@@ -4,10 +4,23 @@ import numpy as np
 CATCH_CIRCLE_R = (68, 72)
 FROD_CIRCLE_R = (34, 36)
 
-class CircleDetectionAlgorithm:
+class Canvas:
+    def __init__(self):
+        self._display = None
 
-    def get_circle_xyr(self, rmat) -> tuple:
+class ObjectDetectionAlgorithm:
+
+    def get_coords(self, rmat) -> tuple:
         pass
+
+    def template_match(self, template, imat, tm_algo=cv.TM_CCOEFF_NORMED):
+        xy = ()
+        res = cv.matchTemplate(imat, template, tm_algo)
+        if res >= 0.8:
+            w, h = imat.shape
+            xy = (round(w/2), round(h/2))
+        
+        return xy
 
     def detected_circles(self, imat, dp, mind, p1, p2, minr, maxr, ipyr=0):
         xyr = ()
@@ -16,7 +29,6 @@ class CircleDetectionAlgorithm:
                                     None, p1, p2, minr, maxr)
             
             if circles is not None:
-                #circles = np.uint16(np.around(circles))
                 circles = np.round(circles[0, :]).astype("int")
                 for (x, y, r) in circles:
                     x = x * (ipyr + 1)
@@ -27,18 +39,17 @@ class CircleDetectionAlgorithm:
         return xyr
 
 
-class DefaultHough(CircleDetectionAlgorithm):
-    def __init__(self, minr: int, maxr: int, dp=1.2, p1=50, p2=30, ipyr=0):
+class DefaultHough(ObjectDetectionAlgorithm):
+    def __init__(self, minmaxr: tuple, dp=1.2, p1=50, p2=30, ipyr=0):
         self._dp = dp
         self._p1 = p1
         self._p2 = p2
-        self._minr = minr
-        self._maxr = maxr
+        self._minr, self._maxr = minmaxr
         self._ipyr = ipyr
         self._mind = 1000
 
 
-    def get_circle_xyr(self, rmat=None) -> tuple:
+    def get_coords(self, rmat=None) -> tuple:
         imat = None
         xyr = ()
         if rmat is not None:
@@ -54,13 +65,12 @@ class DefaultHough(CircleDetectionAlgorithm):
         
         return xyr
             
-class GrayDiff(CircleDetectionAlgorithm):
-    def __init__(self, bg_ref: str, minr: int, maxr: int, dp=1.2, p1=50, p2=30, ipyr=0):
+class GrayDiff(ObjectDetectionAlgorithm):
+    def __init__(self, bg_ref: str, minmaxr: tuple, dp=1.2, p1=50, p2=30, ipyr=0):
         self._dp = dp
         self._p1 = p1
         self._p2 = p2
-        self._minr = minr
-        self._maxr = maxr
+        self._minr, self._maxr = minmaxr
         self._ipyr = ipyr
         self._mind = 1000
         
@@ -68,7 +78,7 @@ class GrayDiff(CircleDetectionAlgorithm):
         self._bg_ref = cv.cvtColor(ref, cv.COLOR_BGR2GRAY)
 
 
-    def get_circle_xyr(self, rmat=None) -> tuple:
+    def get_coords(self, rmat=None) -> tuple:
         imat = None
         xyr = ()
         if rmat is not None:
@@ -84,13 +94,12 @@ class GrayDiff(CircleDetectionAlgorithm):
                                             self._maxr, self._ipyr)
         return xyr
 
-class ValueDiff1(CircleDetectionAlgorithm):
-    def __init__(self, bg_ref: str, minr: int, maxr: int, dp=1.2, p1=50, p2=30, ipyr=0):
+class ValueDiff1(ObjectDetectionAlgorithm):
+    def __init__(self, bg_ref: str, minmaxr: tuple, dp=1.2, p1=50, p2=30, ipyr=0):
         self._dp = dp
         self._p1 = p1
         self._p2 = p2
-        self._minr = minr
-        self._maxr = maxr
+        self._minr, self._maxr = minmaxr
         self._ipyr = ipyr
         self._mind = 1000
 
@@ -98,7 +107,7 @@ class ValueDiff1(CircleDetectionAlgorithm):
         self._bg_ref = cv.cvtColor(ref, cv.COLOR_BGR2HSV)
 
 
-    def get_circle_xyr(self, rmat=None) -> tuple:
+    def get_coords(self, rmat=None) -> tuple:
         imat = None
         xyr = ()
         if rmat is not None:
@@ -114,23 +123,34 @@ class ValueDiff1(CircleDetectionAlgorithm):
                                             self._maxr, self._ipyr)
         return xyr
 
-class ValueDiff2(CircleDetectionAlgorithm):
-    def get_circle_xyr(self, rmat) -> tuple:
+class ValueDiff2(ObjectDetectionAlgorithm):
+    def get_coords(self, rmat) -> tuple:
         pass
 
-class CircleDetector:
-    def __init__(self, algorithm: CircleDetectionAlgorithm):
+class TemplateMatch(ObjectDetectionAlgorithm):
+    def __init__(self, bg_ref):
+        self._bg_ref = cv.imread(bg_ref, 0)
+    
+    def get_coords(self, rmat) -> tuple:
+        xy = ()
+        imat = cv.cvtColor(rmat, cv.COLOR_BGR2GRAY)
+        xy = super().template_match(self._bg_ref, imat)
+        return xy
+
+
+class ObjectDetector:
+    def __init__(self, algorithm: ObjectDetectionAlgorithm):
         self._algorithm = algorithm
     
-    def algo_circle_xyr(self, rmat) -> tuple:
-        return self.algorithm.get_circle_xyr(rmat)
+    def get_detected_coords(self, rmat) -> tuple:
+        return self.algorithm.get_coords(rmat)
 
     @property
-    def algorithm(self) -> CircleDetectionAlgorithm:
+    def algorithm(self) -> ObjectDetectionAlgorithm:
         return self._algorithm
 
     @algorithm.setter
-    def algorithm(self, algorithm: CircleDetectionAlgorithm) -> None:
+    def algorithm(self, algorithm: ObjectDetectionAlgorithm) -> None:
         self._algorithm = algorithm
 
     def draw_circle(self, img=None, xyr=(), conversion=None):

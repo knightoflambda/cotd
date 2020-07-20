@@ -25,7 +25,11 @@ class Window:
         self.width = self.x2 - self.x1
         self.height = self.y2 - self.y1
     
-    def click(self, x,y):
+    def click(self, points_offset: tuple, points=(0, 0)):
+        xo, yo = points_offset
+        x, y = points
+        x = x + xo
+        y = y + yo
         win32api.SetCursorPos((x,y))
         win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,x,y,0,0)
         sleep(0.01)
@@ -35,12 +39,12 @@ class Window:
     def fix_wpos(self, width=1099, height=625):
         win32gui.MoveWindow(self._hwnd, 0, 0, width, height, True)
 
-    def screenshot2mat(self, x=0, y=0, w=None, h=None, bmpfilename=None):
-        if w is None:
-            w = self.width
-        if h is None:
-            h = self.height
-        
+    def screenshot2mat(self, points: tuple, dims=(), bmpfilename=None):
+        x, y = points
+        if not dims:
+            w, h = self.width, self.height
+        else:
+            w, h = dims
         hwnd = self._hwnd
         wDC = win32gui.GetWindowDC(hwnd)
         dcObj=win32ui.CreateDCFromHandle(wDC)

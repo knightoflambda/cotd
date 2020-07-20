@@ -8,16 +8,14 @@ from enum import Enum
 from time import sleep
 from time import time
 
-VERSION = "LATTE (v0.30)"
+VERSION = "LATTE (v0.31)"
 FIRST_BAIT_APOS = (132, 588)
 
-CATCH_AREA_X = 500
-CATCH_AREA_Y = 130
-CATCH_AREA_W = 475
-CATCH_AREA_H = 350
+CATCH_AREA_POINTS = 500, 130
+CATCH_AREA_DIMS = 475, 350
 
-FROD_AREA_X = 230
-FROD_AREA_Y = 532
+FROD_AREA_POINTS = 230, 532
+FROD_AREA_DIMS = 74, 74
 
 class State(Enum):
     load_bait = 0
@@ -29,7 +27,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--fps", 
         help="set program refresh rate for screencapture", type=int, default=10)
     parser.add_argument("-d", "--debug",
-        help="turns on debug mode", type=bool, default=False)
+        help="turns on debug mode", action="store_true")
     parser.add_argument("-v", "--verbose",
         help="shows state and compute time of \
                 compute-intensive functions", type=int, default=1)
@@ -53,29 +51,31 @@ if __name__ == "__main__":
     
     # initialize tools
     bstacks = Window("BlueStacks")
-    
-    catch_minr, catch_maxr = imageprocessor.CATCH_CIRCLE_R
     bg_path = "./res/background.jpg"
-    #frod_path = "./res/frod.jpg"
+    frod_path = "./res/frod_pos.jpg"
 
-    cda = None
+    catch_detect_algo = None
     if args.algorithm == 0:
-        cda = imageprocessor.DefaultHough(catch_minr, catch_maxr)
+        catch_detect_algo = imageprocessor.DefaultHough(imageprocessor.CATCH_CIRCLE_R)
     elif args.algorithm == 1:
-        cda = imageprocessor.GrayDiff(bg_path, catch_minr, catch_maxr)
+        catch_detect_algo = imageprocessor.GrayDiff(bg_path, imageprocessor.CATCH_CIRCLE_R)
     elif args.algorithm == 2:
-        cda = imageprocessor.ValueDiff1(bg_path, catch_minr, catch_maxr)
+        catch_detect_algo = imageprocessor.ValueDiff1(bg_path, imageprocessor.CATCH_CIRCLE_R)
     
-    frod_minr, frod_maxr = imageprocessor.FROD_CIRCLE_R
-    fishing_rod = imageprocessor.DefaultHough(frod_minr, frod_maxr)
-
-    frod_detector = imageprocessor.CircleDetector(fishing_rod)
-    detector = imageprocessor.CircleDetector(cda)
+    frod_algo = imageprocessor.TemplateMatch(frod_path)
+    frod_detector = imageprocessor.ObjectDetector(frod_algo)
+    catch_detector = imageprocessor.ObjectDetector(catch_detect_algo)
 
     # initialize variables
     prev_state = None
     state = State.load_bait
     time_ref = time()
+
+    """ import numpy as np
+    test_img = np.zeros(shape=(72,72,3)).astype('uint8')
+    cv2.imshow('debug',test_img)
+    cv2.moveWindow('debug',1720,600)
+    cv2.waitKey(1)  """
 
     while True:
         if args.verbose == 1:
@@ -84,12 +84,12 @@ if __name__ == "__main__":
             prev_state = state
             
         if state == State.load_bait:
-            frame = bstacks.screenshot2mat(CATCH_AREA_X, CATCH_AREA_Y, CATCH_AREA_W, CATCH_AREA_H)
-            catch = detector.algo_circle_xyr(frame)
+            frame = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
+            catch = catch_detector.get_detected_coords(frame)
             if catch:
-                bstacks.click(*FIRST_BAIT_APOS)
+                bstacks.click(FIRST_BAIT_APOS)
                 x, y, r = catch
-                bstacks.click(x + CATCH_AREA_X, y + CATCH_AREA_Y)
+                bstacks.click(CATCH_AREA_POINTS, (x,y))
                 state = State.waiting
         elif state == State.waiting:
             if (time() - time_ref) > 11:
@@ -98,21 +98,30 @@ if __name__ == "__main__":
                 time_ref = time()
                 state = State.load_bait
 
-            frame = bstacks.screenshot2mat(FROD_AREA_X, FROD_AREA_Y, 74, 74)
-            frod = frod_detector.algo_circle_xyr(frame)
+            frame = bstacks.screenshot2mat(FROD_AREA_POINTS, FROD_AREA_DIMS)
+            frod = frod_detector.get_detected_coords(frame)
             if frod:
                 state = State.fishing
         elif state == State.fishing:
-            fframe = bstacks.screenshot2mat(FROD_AREA_X, FROD_AREA_Y, 74, 74)
-            frod = frod_detector.algo_circle_xyr(fframe)
+            fframe = bstacks.screenshot2mat(FROD_AREA_POINTS, FROD_AREA_DIMS)
+            frod = frod_detector.get_detected_coords(fframe)
             if not frod:
                 state = State.load_bait
             else:
-                cframe = bstacks.screenshot2mat(CATCH_AREA_X, CATCH_AREA_Y, CATCH_AREA_W, CATCH_AREA_H)
-                catch = detector.algo_circle_xyr(cframe)
+                cframe = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
+                catch = catch_detector.get_detected_coords(cframe)
                 if catch:
                     x, y, r = catch
-                    bstacks.click(x + CATCH_AREA_X, y + CATCH_AREA_Y)
+                    bstacks.click(CATCH_AREA_POINTS, (x, y))
         
         time_ref = time()
+        """ if args.debug:
+            frame = bstacks.screenshot2mat(FROD_AREA_X, FROD_AREA_Y, 74, 74)
+            frod = frod_detector.get_detected_coords(frame)
+            if frod:
+                frame = frod_detector.draw_circle(frame, frod)
+            imshow("debug", frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break """
+
         sleep(1/args.fps)
