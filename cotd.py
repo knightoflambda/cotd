@@ -9,7 +9,7 @@ from enum import Enum
 from time import sleep
 from datetime import datetime
 
-VERSION = "LATTE (v0.31)"
+VERSION = "MILKMOCHA (v0.40)"
 FIRST_BAIT_APOS = (101, 553) #101, 553:65x65 + 11x65
 
 CATCH_AREA_POINTS = 500, 130
