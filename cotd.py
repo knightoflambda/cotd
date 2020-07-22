@@ -2,6 +2,7 @@ import argparse
 import threading
 import imageprocessor
 import logging
+import sys
 
 from windowwrapper import Window
 from enum import Enum
@@ -53,44 +54,26 @@ if __name__ == "__main__":
         print("\tVerbose Level: %d" % args.verbose)
         print("\tAlgorithm: %d" % args.algorithm)
     
-    print()
     
+    sys.stdout.flush()
     
     # initialize tools
     bstacks = Window("BlueStacks")
-    bg_path = "./res/background.jpg"
+    catch_region_path = "./res/catch_region.jpg"
     frod_path = "./res/frod_pos.jpg"
     brocco_path = "./res/brocco.jpg"
-
-
-    catch_detect_algo = None
-    if args.algorithm == 0:
-        catch_detect_algo = imageprocessor.DefaultHough(imageprocessor.CATCH_CIRCLE_R)
-    elif args.algorithm == 1:
-        catch_detect_algo = imageprocessor.GrayDiff(bg_path, imageprocessor.CATCH_CIRCLE_R)
-    elif args.algorithm == 2:
-        catch_detect_algo = imageprocessor.ValueDiff1(bg_path, imageprocessor.CATCH_CIRCLE_R)
     
-    frod_algo = imageprocessor.TemplateMatch(frod_path)
-    brocco_algo = imageprocessor.TemplateMatch(brocco_path, gray=False, thresh=0.7)
-
-    brocco_detector = imageprocessor.ObjectDetector(brocco_algo)
-    frod_detector = imageprocessor.ObjectDetector(frod_algo)
-    catch_detector = imageprocessor.ObjectDetector(catch_detect_algo)
-
     bait_coords_center = ()
+
+    bait_loc = imageprocessor.TemplateMatchLocator([(brocco_path, 0.7)])
+    frod_loc = imageprocessor.TemplateMatchLocator([(frod_path, 0.7)])
+    catch_loc = imageprocessor.CircleLocator(catch_region_path)
 
     # initialize variables
     prev_state = None
     state = State.load_bait
-    time_ref = datetime.now()
+    time_ref = None
 
-    """ import numpy as np
-    test_img = np.zeros(shape=(72,72,3)).astype('uint8')
-    cv2.imshow('debug',test_img)
-    cv2.moveWindow('debug',1720,600)
-    cv2.waitKey(1)  """
-    import cv2
     while True:
         if args.verbose == 1:
             if prev_state != state:
@@ -98,14 +81,15 @@ if __name__ == "__main__":
             prev_state = state
             
         if state == State.load_bait:
+            time_ref = datetime.now()
             frame = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
-            catch = catch_detector.get_detected_coords(frame)
+            catch, _ = catch_loc.find_object(frame, imageprocessor.CATCH_CIRCLE_R)
             if catch:
                 for i in range(11):
                     x, y = FIRST_BAIT_APOS
                     x = x + (i * 64) + (i * 10)
                     bait_frame = bstacks.screenshot2mat((x, y), (64, 64))
-                    brocco = brocco_detector.get_detected_coords(bait_frame)
+                    brocco, _ = bait_loc.find_object(bait_frame)
                     if brocco:
                         if args.verbose == 1:
                             logger.info("brocco found in index %d", i)
@@ -121,33 +105,22 @@ if __name__ == "__main__":
             if (seconds) > 15:
                 if args.verbose == 1:
                     logger.info("Deadlocked in wait, resetting state...")
-                time_ref = datetime.now()
                 state = State.load_bait
 
             frame = bstacks.screenshot2mat(FROD_AREA_POINTS, FROD_AREA_DIMS)
-            frod = frod_detector.get_detected_coords(frame)
+            frod, _ = frod_loc.find_object(frame)
             if frod:
                 state = State.fishing
+
         elif state == State.fishing:
-            fframe = bstacks.screenshot2mat(FROD_AREA_POINTS, FROD_AREA_DIMS)
-            frod = frod_detector.get_detected_coords(fframe)
+            frod_frame = bstacks.screenshot2mat(FROD_AREA_POINTS, FROD_AREA_DIMS)
+            frod, _ = frod_loc.find_object(frod_frame)
             if not frod:
                 state = State.load_bait
             else:
-                cframe = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
-                catch = catch_detector.get_detected_coords(cframe)
+                catch_frame = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
+                catch, _ = catch_loc.find_object(catch_frame, imageprocessor.CATCH_CIRCLE_R)
                 if catch:
                     x, y, r = catch
                     bstacks.click(CATCH_AREA_POINTS, (x, y))
-        
-        #time_ref = datetime.now()
-        """ if args.debug:
-            frame = bstacks.screenshot2mat(FROD_AREA_X, FROD_AREA_Y, 74, 74)
-            frod = frod_detector.get_detected_coords(frame)
-            if frod:
-                frame = frod_detector.draw_circle(frame, frod)
-            imshow("debug", frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break """
-
         sleep(1/args.fps)

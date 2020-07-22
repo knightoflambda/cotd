@@ -10,9 +10,9 @@ class WindowNotFoundException(Exception):
         self.message = message.format(winname)
         super().__init__(self.message)
 
-class InvalidWindowCoordinates(Exception):
+class InvalidWindowCoordinatesException(Exception):
     def __init__(self, message="Invalid coordinates given"):
-        super().__init__(self.message)
+        super().__init__(message)
 
 
 class Window:
@@ -31,7 +31,7 @@ class Window:
     
     def click(self, points_offset: tuple, points=(0, 0)):
         if not points_offset:
-            raise InvalidWindowCoordinates()
+            raise InvalidWindowCoordinatesException()
         xo, yo = points_offset
         x, y = points
         x = x + xo
