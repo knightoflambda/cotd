@@ -9,7 +9,7 @@ from enum import Enum
 from time import sleep
 from datetime import datetime
 
-VERSION = "MILKMOCHA (v0.40)"
+VERSION = "MILKMOCHA (v0.41)"
 FIRST_BAIT_APOS = (101, 553) #101, 553:65x65 + 11x65
 
 CATCH_AREA_POINTS = 500, 130
@@ -36,8 +36,8 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose",
         help="shows state and compute time of \
                 compute-intensive functions", type=int, default=1)
-    parser.add_argument("-a", "--algorithm",
-        help="sets the primary algorithm for circle detection", type=int, default=1)
+    parser.add_argument("-b", "--bait",
+        help="sets the baiting style for fishing (-1: picks first bait only, 0: everything baitable, 1: broccoli only)", type=int, default=-1)
     args = parser.parse_args()
 
     print("\nPetPals - Catch of the Day")
@@ -47,14 +47,24 @@ if __name__ == "__main__":
     print("\nPsalm 115:1\tNot unto us, O Lord, not unto us, \n\t\tbut unto thy name give glory,\n\t\tfor thy mercy, and for thy truth's sake.\n")
     print("\nJames 1:17\tEvery good and perfect gift is from above,\n\t\tcoming down from the Father of the heavenly lights\n")
 
+    bait_style = None
+
+    if args.bait == -1:
+        bait_style = "Pick first bait only"
+    elif args.bait == 0:
+        bait_style = "Use everything that is baitable"
+    elif args.bait == 1:
+        bait_style = "Broccoli only"
+
+
     if args.verbose == 1:
         print("Running with params: ")
         print("\tFPS: %d" % args.fps)
         print("\tDebug Mode: %s" % args.debug)
         print("\tVerbose Level: %d" % args.verbose)
-        print("\tAlgorithm: %d" % args.algorithm)
+        print("\tBaiting Style: %s" % bait_style)
     
-    
+    print("\n")
     sys.stdout.flush()
     
     # initialize tools
@@ -85,7 +95,10 @@ if __name__ == "__main__":
             frame = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
             catch, _ = catch_loc.find_object(frame, imageprocessor.CATCH_CIRCLE_R)
             if catch:
-                for i in range(11):
+                if args.bait == -1:
+                    x, y = FIRST_BAIT_APOS
+                    bait_coords_center = (x + 32, y + 32)
+                elif args.bait == 1:
                     x, y = FIRST_BAIT_APOS
                     x = x + (i * 64) + (i * 10)
                     bait_frame = bstacks.screenshot2mat((x, y), (64, 64))

@@ -16,8 +16,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Refactor code to meet MVC standards in GUI implementation
+
+## [0.4.1] - Codename: "Milkmocha" - 2020-07-21
+
+### Changed
+
+- Change *algorithm* parameter to *bait*
+- Modify bait style implementation in main loop
  
-## [0.4.0] - Codename: "Milkmocha" - 2020-07-21
+## [0.4.0] - Codename: "Milkmocha" - 2020-07-22
  
 ### Added
 
