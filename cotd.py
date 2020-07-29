@@ -28,6 +28,8 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format=fmt_str, datefmt='%H:%M:%S')
     logger = logging.getLogger(__name__)
 
+    bait_list = ["bcan", "blublub", "bottle", "brocco", "fishbone", "rcan"]
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--fps", 
         help="set program refresh rate for screencapture", type=int, default=10)
@@ -37,10 +39,8 @@ if __name__ == "__main__":
         help="shows state and compute time of \
                 compute-intensive functions", type=int, default=1)
     parser.add_argument("-b", "--bait",
-        help="sets the baiting style for fishing (-1: picks first bait only, (0-5) singular bait)", type=int, default=-1)
+        help="sets the baiting method: [first, [{}]]".format(str(bait_list)), type=str, default="first")
     args = parser.parse_args()
-
-    
 
     print("\nPetPals - Catch of the Day")
     print("Author: l4mbda")
@@ -49,13 +49,12 @@ if __name__ == "__main__":
     print("\nPsalm 115:1\tNot unto us, O Lord, not unto us, \n\t\tbut unto thy name give glory,\n\t\tfor thy mercy, and for thy truth's sake.\n")
     print("\nJames 1:17\tEvery good and perfect gift is from above,\n\t\tcoming down from the Father of the heavenly lights\n")
 
-    bait_list = ["bcan", "blublub", "bottle", "brocco", "fishbone", "rcan"]
     bait_style = None
 
-    if args.bait == -1:
+    if args.bait == "first":
         bait_style = "Pick first bait only"
-    elif 0 <= args.bait <= len(bait_list):
-        bait_style = "{} only".format(bait_list[args.bait])
+    else:
+        bait_style = "{} only".format(args.bait)
 
 
     if args.verbose == 1:
@@ -73,11 +72,12 @@ if __name__ == "__main__":
     bstacks.fix_wpos()
     catch_region_path = "./res/catch_region.jpg"
     frod_path = "./res/frod_pos.jpg"
-    brocco_path = "./res/{}.jpg".format(bait_list[args.bait])
+    if args.bait != "first":
+        bait_path = "./res/{}.jpg".format(args.bait)
     
     bait_coords_center = ()
-
-    bait_loc = imageprocessor.TemplateMatchLocator([(brocco_path, 0.9)])
+    if args.bait != "first":
+        bait_loc = imageprocessor.TemplateMatchLocator([(bait_path, 0.9)])
     frod_loc = imageprocessor.TemplateMatchLocator([(frod_path, 0.7)])
     catch_loc = imageprocessor.CircleLocator(catch_region_path)
 
@@ -97,10 +97,10 @@ if __name__ == "__main__":
             frame = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
             catch, _ = catch_loc.find_object(frame, imageprocessor.CATCH_CIRCLE_R)
             if catch:
-                if args.bait == -1:
+                if args.bait == "first":
                     x, y = FIRST_BAIT_APOS
                     bait_coords_center = (x + 32, y + 32)
-                elif 0 <= args.bait <= len(bait_list):
+                else:
                     for i in range(11):
                         x, y = FIRST_BAIT_APOS
                         x = x + (i * 64) + (i * 10)
@@ -108,7 +108,7 @@ if __name__ == "__main__":
                         bait_exist, res, _ = bait_loc.find_object(bait_frame)
                         if bait_exist:
                             if args.verbose == 1:
-                                logger.info("%s found in index %d, %.2f%% match", bait_list[args.bait], i, res)
+                                logger.info("%s found in index %d, %.2f%% match",args.bait, i, res)
                             bait_coords_center = (x + 32, y + 32)
                             break
                 bstacks.click(bait_coords_center)
