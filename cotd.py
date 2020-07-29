@@ -37,8 +37,10 @@ if __name__ == "__main__":
         help="shows state and compute time of \
                 compute-intensive functions", type=int, default=1)
     parser.add_argument("-b", "--bait",
-        help="sets the baiting style for fishing (-1: picks first bait only, 0: everything baitable, 1: broccoli only)", type=int, default=-1)
+        help="sets the baiting style for fishing (-1: picks first bait only, (0-5) singular bait)", type=int, default=-1)
     args = parser.parse_args()
+
+    
 
     print("\nPetPals - Catch of the Day")
     print("Author: l4mbda")
@@ -47,14 +49,13 @@ if __name__ == "__main__":
     print("\nPsalm 115:1\tNot unto us, O Lord, not unto us, \n\t\tbut unto thy name give glory,\n\t\tfor thy mercy, and for thy truth's sake.\n")
     print("\nJames 1:17\tEvery good and perfect gift is from above,\n\t\tcoming down from the Father of the heavenly lights\n")
 
+    bait_list = ["bcan", "blublub", "bottle", "brocco", "fishbone", "rcan"]
     bait_style = None
 
     if args.bait == -1:
         bait_style = "Pick first bait only"
-    elif args.bait == 0:
-        bait_style = "Use everything that is baitable"
-    elif args.bait == 1:
-        bait_style = "Broccoli only"
+    elif 0 <= args.bait <= len(bait_list):
+        bait_style = "{} only".format(bait_list[args.bait])
 
 
     if args.verbose == 1:
@@ -69,13 +70,14 @@ if __name__ == "__main__":
     
     # initialize tools
     bstacks = Window("BlueStacks")
+    bstacks.fix_wpos()
     catch_region_path = "./res/catch_region.jpg"
     frod_path = "./res/frod_pos.jpg"
-    brocco_path = "./res/brocco.jpg"
+    brocco_path = "./res/{}.jpg".format(bait_list[args.bait])
     
     bait_coords_center = ()
 
-    bait_loc = imageprocessor.TemplateMatchLocator([(brocco_path, 0.7)])
+    bait_loc = imageprocessor.TemplateMatchLocator([(brocco_path, 0.9)])
     frod_loc = imageprocessor.TemplateMatchLocator([(frod_path, 0.7)])
     catch_loc = imageprocessor.CircleLocator(catch_region_path)
 
@@ -98,16 +100,17 @@ if __name__ == "__main__":
                 if args.bait == -1:
                     x, y = FIRST_BAIT_APOS
                     bait_coords_center = (x + 32, y + 32)
-                elif args.bait == 1:
-                    x, y = FIRST_BAIT_APOS
-                    x = x + (i * 64) + (i * 10)
-                    bait_frame = bstacks.screenshot2mat((x, y), (64, 64))
-                    brocco, _ = bait_loc.find_object(bait_frame)
-                    if brocco:
-                        if args.verbose == 1:
-                            logger.info("brocco found in index %d", i)
-                        bait_coords_center = (x + 32, y + 32)
-                        break
+                elif 0 <= args.bait <= len(bait_list):
+                    for i in range(11):
+                        x, y = FIRST_BAIT_APOS
+                        x = x + (i * 64) + (i * 10)
+                        bait_frame = bstacks.screenshot2mat((x, y), (64, 30))
+                        bait_exist, res, _ = bait_loc.find_object(bait_frame)
+                        if bait_exist:
+                            if args.verbose == 1:
+                                logger.info("%s found in index %d, %.2f%% match", bait_list[args.bait], i, res)
+                            bait_coords_center = (x + 32, y + 32)
+                            break
                 bstacks.click(bait_coords_center)
                 x, y, r = catch
                 bstacks.click(CATCH_AREA_POINTS, (x,y))
@@ -121,13 +124,13 @@ if __name__ == "__main__":
                 state = State.load_bait
 
             frame = bstacks.screenshot2mat(FROD_AREA_POINTS, FROD_AREA_DIMS)
-            frod, _ = frod_loc.find_object(frame)
+            frod, _, _ = frod_loc.find_object(frame)
             if frod:
                 state = State.fishing
 
         elif state == State.fishing:
             frod_frame = bstacks.screenshot2mat(FROD_AREA_POINTS, FROD_AREA_DIMS)
-            frod, _ = frod_loc.find_object(frod_frame)
+            frod, _, _ = frod_loc.find_object(frod_frame)
             if not frod:
                 state = State.load_bait
             else:

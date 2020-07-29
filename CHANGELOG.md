@@ -17,6 +17,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Refactor code to meet MVC standards in GUI implementation
 
+## [0.4.2] - 2020-07-29
+
+### Added
+
+- Added experimental singular bait choosing feature
+- Added result percentage to tuple in template *find_object()* function
+
+### Changed
+
+- Restored *fix_wpos()* function
+- Set template match threshold to 90%, previously 70%
+- Refactored code to include addition of result percentage in *find_object()* tuple
+
 ## [0.4.1] - Codename: "Milkmocha" - 2020-07-21
 
 ### Changed

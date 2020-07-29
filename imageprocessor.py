@@ -15,7 +15,7 @@ class MinMaxRadiusException(Exception):
 
 
 class ObjectLocator:
-    def find_object(self, img) -> tuple: pass # tuple of coordinates and a mat object
+    def find_object(self, img) -> tuple: pass # tuple containing at least object coordinates and a mat object
 
 
 class TemplateMatchLocator(ObjectLocator):
@@ -33,6 +33,7 @@ class TemplateMatchLocator(ObjectLocator):
     def find_object(self, img):
         mat = img
         xy = ()
+        res = 0
         for template_thresh in self._temp_thresh:
             template, thresh = template_thresh
             res = cv.matchTemplate(mat, template, cv.TM_CCOEFF_NORMED)
@@ -40,7 +41,7 @@ class TemplateMatchLocator(ObjectLocator):
                 w, h, _ = mat.shape
                 xy = (round(w/2), round(h/2))
 
-        return (xy, mat)
+        return (xy, res * 100, mat)
 
 
 class CircleLocator(ObjectLocator):
