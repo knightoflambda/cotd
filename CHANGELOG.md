@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Refactor code to meet MVC standards in GUI implementation
 
+## [0.4.3] - 2020-07-30
+
+### Added
+
+- Created template grabber helper file
+- Added bluebait to resources 
+
 ## [0.4.2] - 2020-07-29
 
 ### Added
