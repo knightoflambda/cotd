@@ -9,7 +9,7 @@ from enum import Enum
 from time import sleep
 from datetime import datetime
 
-VERSION = "MILKMOCHA (v0.43)"
+VERSION = "MACCHIATO (v0.5)"
 FIRST_BAIT_APOS = (101, 553) #101, 553:65x65 + 11x65
 
 CATCH_AREA_POINTS = 500, 130
@@ -28,8 +28,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format=fmt_str, datefmt='%H:%M:%S')
     logger = logging.getLogger(__name__)
 
-    bait_list = ["bcan", "blublub", "bottle", "brocco", "fishbone", "rcan"]
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--fps", 
         help="set program refresh rate for screencapture", type=int, default=10)
@@ -39,7 +37,7 @@ if __name__ == "__main__":
         help="shows state and compute time of \
                 compute-intensive functions", type=int, default=1)
     parser.add_argument("-b", "--bait",
-        help="sets the baiting method: [first, [{}]]".format(str(bait_list)), type=str, default="first")
+        help="sets the baiting method: [first, bait]", type=str, default="first")
     args = parser.parse_args()
 
     print("\nPetPals - Catch of the Day")
