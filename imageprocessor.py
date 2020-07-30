@@ -4,6 +4,19 @@ import numpy as np
 CATCH_CIRCLE_R = (68, 72)
 FROD_CIRCLE_R = (34, 36)
 
+class ImageDisplay:
+    def __init__(self, winname: str, coords: tuple):
+        self._winname = winname
+        placeholder_mat = np.zeros(shape=(200,200,3)).astype('uint8')
+        cv.imshow(self._winname, placeholder_mat)
+        x, y = coords
+        cv.moveWindow(winname, x, y)
+        cv.waitKey(1)
+
+    def set_image(self, image):
+        cv.imshow(self._winname, image)
+        cv.waitKey(1)
+
 class InvalidImagePathException(Exception):
     def __init__(self, path, message="Invalid image path '%s' given"):
         self.message = message.format(path)

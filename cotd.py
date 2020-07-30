@@ -69,20 +69,22 @@ if __name__ == "__main__":
     bstacks = Window("BlueStacks")
     bstacks.fix_wpos()
     catch_region_path = "./res/catch_region.jpg"
-    frod_path = "./res/frod_pos.jpg"
+    frod_path = "./res/frod_update.jpg"
     if args.bait != "first":
         bait_path = "./res/{}.jpg".format(args.bait)
     
     bait_coords_center = ()
     if args.bait != "first":
         bait_loc = imageprocessor.TemplateMatchLocator([(bait_path, 0.9)])
-    frod_loc = imageprocessor.TemplateMatchLocator([(frod_path, 0.7)])
+    frod_loc = imageprocessor.TemplateMatchLocator([(frod_path, 0.45)])
     catch_loc = imageprocessor.CircleLocator(catch_region_path)
 
     # initialize variables
     prev_state = None
     state = State.load_bait
     time_ref = None
+
+    db_disp = imageprocessor.ImageDisplay("debug", (0, 600))
 
     while True:
         if args.verbose == 1:
