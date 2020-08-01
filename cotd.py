@@ -68,7 +68,7 @@ if __name__ == "__main__":
         print("\tDebug Mode: %s" % args.debug)
         print("\tVerbose Level: %d" % args.verbose)
         print("\tBaiting Style: %s" % bait_style)
-        pritn("\tDeadlock Streak Threshold: %s" % t_dstreak)
+        print("\tDeadlock Streak Threshold: %s" % t_dstreak)
     
     print("\n")
     sys.stdout.flush()
