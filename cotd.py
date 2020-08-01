@@ -140,13 +140,13 @@ if __name__ == "__main__":
             elif state == State.waiting:
                 delta = datetime.now() - time_ref
                 seconds = delta.total_seconds()
-                if (seconds) > 15:
+                if (seconds) > t_wait:
                     dstreak = dstreak + 1
                     if dstreak > t_dstreak: 
                         logger.info("Deadlock threshold passed, quitting program...")
                         break
                     if args.verbose == 1:
-                        logger.info("Deadlocked in wait, resetting state...")
+                        logger.info("Deadlocked in wait, ({} of {}) resetting state...".format(dstreak, t_dstreak))
                     state = State.load_bait
 
                 frame = bstacks.screenshot2mat(FROD_AREA_POINTS, FROD_AREA_DIMS)
