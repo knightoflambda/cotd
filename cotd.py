@@ -42,6 +42,7 @@ if __name__ == "__main__":
     t_wait = int(threshold['Wait_Thresh'])
     t_frod = float(threshold['FRod_Thresh'])
     t_bait = float(threshold['Bait_Thresh'])
+    t_dstreak = int(threshold['Deadlock_Streak'])
 
     cr_temp = str(templates['CR_Template'])
     frod_temp = str(templates['FRod_Template'])
@@ -67,6 +68,7 @@ if __name__ == "__main__":
         print("\tDebug Mode: %s" % args.debug)
         print("\tVerbose Level: %d" % args.verbose)
         print("\tBaiting Style: %s" % bait_style)
+        pritn("\tDeadlock Streak Threshold: %s" % t_dstreak)
     
     print("\n")
     sys.stdout.flush()
@@ -92,6 +94,9 @@ if __name__ == "__main__":
     time_ref = None
     db_disp = None
     canvas = None
+
+    dstreak = 0
+
     if args.debug:
         db_disp = imageprocessor.ImageDisplay("debug", (0, 600))
         canvas = imageprocessor.Canvas()
@@ -136,6 +141,10 @@ if __name__ == "__main__":
                 delta = datetime.now() - time_ref
                 seconds = delta.total_seconds()
                 if (seconds) > 15:
+                    dstreak = dstreak + 1
+                    if dstreak > t_dstreak: 
+                        logger.info("Deadlock threshold passed, quitting program...")
+                        break
                     if args.verbose == 1:
                         logger.info("Deadlocked in wait, resetting state...")
                     state = State.load_bait
@@ -143,6 +152,7 @@ if __name__ == "__main__":
                 frame = bstacks.screenshot2mat(FROD_AREA_POINTS, FROD_AREA_DIMS)
                 frod, _, _ = frod_loc.find_object(frame)
                 if frod:
+                    dstreak = 0
                     state = State.fishing
             elif state == State.fishing:
                 frod_frame = bstacks.screenshot2mat(FROD_AREA_POINTS, FROD_AREA_DIMS)
