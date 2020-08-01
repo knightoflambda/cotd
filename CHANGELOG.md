@@ -11,11 +11,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add a tkinter GUI for a user-friendly experience
 - Add active KeyListener to halt program execution
 - Add grayscale option for *TemplateMatchLocator*
-- Add other circle detection algorithms, current version only implements value difference
 
 ### Changed
 
 - Refactor code to meet MVC standards in GUI implementation
+- Improve template matching accuracy for baiting
+
+## [0.5.0] - Codename: "Macchiato" - 2020-08-01
+
+### Added
+
+- Added new templates for use
+- Created **cotd.cfg** to easily modify most parameters without the need to recompile
+- Created *ImageDisplay* and *Canvas* in **imageprocessor.py** for the *--debug* parameter
+- Implemented display debugger in catch region for *--debug* parameter
+- Added a deadlock streak feature to terminate program upon passing set threshold
+
+### Changed
+
+- Updated current image templates to match wedding anniversary templates
+
+### Removed
+
+- Removed parameter (*bait*, *fps*) passing on shell in favor of setting them in **cotd.cfg**
 
 ## [0.4.3] - 2020-07-30
 
