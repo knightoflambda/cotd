@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 
-CATCH_CIRCLE_R = (68, 72)
+CATCH_CIRCLE_R = (66, 70)
 FROD_CIRCLE_R = (34, 36)
 
 class ImageDisplay:
@@ -60,12 +60,16 @@ class TemplateMatchLocator(ObjectLocator):
 class CircleLocator(ObjectLocator):
     def __init__(self, temp_path):
         mat = cv.imread(temp_path)
+
+        self._cspace = cv.COLOR_BGR2LAB
+        self._channel = 0
         self._template = None
+
         if mat is None:
             raise InvalidImagePathException()
         else:
-            hsv = cv.cvtColor(mat, cv.COLOR_BGR2HSV)
-            self._template = hsv[:, :, 2]
+            cspace = cv.cvtColor(mat, self._cspace)
+            self._template = cspace[:, :, self._channel]
 
 
     def find_object(self, img, minmaxr=()):
@@ -73,9 +77,10 @@ class CircleLocator(ObjectLocator):
         if not minmaxr:
             raise MinMaxRadiusException()
         minr, maxr = minmaxr
-        hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-        img_v = hsv[:, :, 2]
+        cspace = cv.cvtColor(img, self._cspace)
+        img_v = cspace[:, :, self._channel]
         imat = cv.absdiff(self._template, img_v)
+        #imat = cv.blur(imat,(5,5))
         circles = cv.HoughCircles(imat, cv.HOUGH_GRADIENT, 1.2, 1000, None, 50, 30, minr, maxr)
         if circles is not None:
             circles = np.round(circles[0, :]).astype("int")
@@ -92,3 +97,14 @@ class CircleLocator(ObjectLocator):
 class Canvas:
     def __init__(self):
         self._display = None
+
+    def draw_circle(self, img, minmaxr):
+        minr, maxr = minmaxr
+        circles = cv.HoughCircles(img, cv.HOUGH_GRADIENT, 1.2, 1000, None, 50, 30, minr, maxr)
+        if circles is not None:
+            circles = np.round(circles[0, :]).astype("int")
+            for (x, y, r) in circles:
+                img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
+                img = cv.circle(img, (x,y), r, (0, 0, 255), 2)
+        
+        return img
