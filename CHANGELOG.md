@@ -15,7 +15,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Refactor code to meet MVC standards in GUI implementation
-- Improve template matching accuracy for baiting
+- Improve template matching accuracy for baiting, might use SSIM
+
+## [0.6.0] - Codename: "Ristretto" - 2020-09-19
+
+### Added
+
+### Changed
+
+- Updated templates
 
 ## [0.5.0] - Codename: "Macchiato" - 2020-08-01
 

@@ -6,8 +6,8 @@ from windowwrapper import Window
 
 if __name__ == "__main__":
     bstacks = Window("BlueStacks")
-    for i in range(10):
-        x, y = cotd.FIRST_BAIT_APOS
-        x = x + (i * 64) + (i * 10)
-        frame = bstacks.screenshot2mat((x, y), (64, 30))
-        cv.imwrite("./res/bait{}.jpg".format(i), frame)
+    x, y = cotd.FROD_AREA_POINTS
+    w, h = cotd.FROD_AREA_DIMS
+
+    frame = bstacks.screenshot2mat((x, y), (w, h))
+    cv.imwrite("./res/frod_beach.jpg", frame)
