@@ -10,7 +10,7 @@ from enum import Enum
 from time import sleep
 from datetime import datetime
 
-VERSION = "MACCHIATO (v0.5)"
+VERSION = "RISTRETTO (v0.6)"
 FIRST_BAIT_APOS = (101, 553) #101, 553:65x65 + 11x65
 
 CATCH_AREA_POINTS = 500, 130
@@ -96,10 +96,29 @@ if __name__ == "__main__":
     canvas = None
 
     dstreak = 0
-
     if args.debug:
         db_disp = imageprocessor.ImageDisplay("debug", (0, 600))
         canvas = imageprocessor.Canvas()
+
+    import cv2 as cv
+    import numpy as np
+    # test data
+    colors = [ # bgr format
+        [229, 215, 133],
+        [237, 231, 156],
+        [244, 241, 180], 
+        [255, 253, 241], # +-5
+        [254, 247, 214],
+        [255, 234, 182],
+        [222, 216, 87],
+        [167, 146, 64],
+        [195, 181, 68],
+        # left - up
+        [134, 65, 56],
+        [224, 208, 201],
+        [237, 232, 231],
+        [192, 167, 157]
+    ]
     
     while True:
         if args.verbose == 1:
@@ -109,9 +128,24 @@ if __name__ == "__main__":
         
         if args.debug:
             frame = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
-            catch, cmat = catch_loc.find_object(frame, imageprocessor.CATCH_CIRCLE_R)
-            catch = canvas.draw_circle(cmat, imageprocessor.CATCH_CIRCLE_R)
-            db_disp.set_image(catch)
+            width, height = CATCH_AREA_DIMS
+            masks = np.zeros((height,width), np.uint8)
+            for color in colors:
+                mask = cv.inRange(frame, np.array([x - 3 for x in color]), np.array([x + 3 for x in color]))
+                masks = cv.bitwise_or(masks, mask)
+
+            frame[masks > 0] = (0,0,0)
+            #catch, cmat = catch_loc.find_object(frame, imageprocessor.CATCH_CIRCLE_R)
+            #catch = canvas.draw_circle(cmat, imageprocessor.CATCH_CIRCLE_R)
+            gray = cv.cvtColor(frame, cv.COLOR_BGR2HSV)[:, :, 1]
+            #kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE,(5,5))
+            #gray = cv.erode(gray,kernel,iterations = 1)
+            circles = cv.HoughCircles(gray, cv.HOUGH_GRADIENT, 1.2, 1000, None, 50, 30, 30, 35)
+            if circles is not None:
+                circles = np.round(circles[0, 0, :]).astype("int")
+                x, y, r = circles
+                frame = cv.circle(frame, (x, y), r, (0, 0, 255), 2)
+            db_disp.set_image(frame)
 
         else:
             if state == State.load_bait:

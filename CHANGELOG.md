@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Implemented new *Fisher* class to encapsulate fishing operations
+
 ### Changed
 
 - Updated templates
