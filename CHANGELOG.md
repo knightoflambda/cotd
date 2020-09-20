@@ -22,10 +22,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Implemented new *Fisher* class to encapsulate fishing operations
+- Added new method of detecting circles/bubbles
 
 ### Changed
 
-- Updated templates
+- Updated *frod* template
+- Refactored main codebase for simplicity
+- Changed 0.01 sleep time in *windowrapper.click()* method to 0.05
+
+### Removed
+
+- Removed experimental custom bait picks
+- Removed templates for *catch_region*
+- Removed unnecessary classes in **imageprocessor.py**
 
 ## [0.5.0] - Codename: "Macchiato" - 2020-08-01
 

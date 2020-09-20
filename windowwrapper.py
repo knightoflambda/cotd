@@ -38,9 +38,9 @@ class Window:
         y = y + yo
         win32api.SetCursorPos((x,y))
         win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,x,y,0,0)
-        sleep(0.01)
+        sleep(0.05)
         win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP,x,y,0,0)
-        sleep(0.01)
+        sleep(0.05)
 
     def fix_wpos(self, width=1099, height=625):
         win32gui.MoveWindow(self._hwnd, 0, 0, width, height, True)
