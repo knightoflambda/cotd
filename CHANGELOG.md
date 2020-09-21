@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Refactor code to meet MVC standards in GUI implementation
 - Improve template matching accuracy for baiting, might use SSIM
 
-## [0.6.1] - 2020-09-19
+## [0.6.1] - 2020-09-21
 
 ### Added
 
@@ -26,7 +26,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Made *HoughCircles* parameters customizable through **cotd.cfg**
-
 
 ## [0.6.0] - Codename: "Ristretto" - 2020-09-19
 
