@@ -6,8 +6,11 @@ CATCH_CIRCLE_R = (66, 70)
 FROD_CIRCLE_R = (34, 36)
 
 class CircleLocator:
-    def __init__(self):
-        pass
+    def __init__(self, params: list):
+        self._p1 = params[0]
+        self._p2 = params[1]
+        self._minr = params[2]
+        self._maxr = params[3]
 
     def locate(self, image):
         gray = None
@@ -16,7 +19,7 @@ class CircleLocator:
             gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
         else:
             gray = image
-            circle = cv.HoughCircles(gray, cv.HOUGH_GRADIENT, 1.2, 1000, None, 50, 30, 30, 35)
+            circle = cv.HoughCircles(gray, cv.HOUGH_GRADIENT, 1.2, 1000, None, self._p1, self._p2, self._minr, self._maxr)
             if circle is not None:
                 circle = np.round(circle[0, 0, :]).astype("int")
 
@@ -73,3 +76,23 @@ class TemplateMatcher:
     def is_match(self, image):
         res = cv.matchTemplate(image, self._template, cv.TM_CCOEFF_NORMED)
         return res >= self._thresh
+
+class Canvas:
+    def __init__(self, winname, width, height):
+        self._winname = winname
+        self._image = np.zeros((height, width, 3), np.uint8)
+        cv.imshow(self._winname, self._image)
+        cv.moveWindow(self._winname, 0, 650)
+        cv.waitKey(1)
+
+
+    def display(self):
+        cv.imshow(self._winname, self._image)
+        cv.waitKey(1)
+
+    def store(self, image):
+        self._image = image
+
+    def draw_circle(self, xyr):
+        x, y, r = xyr
+        self._image = cv.circle(self._image, (x, y), r, (0,0,255))

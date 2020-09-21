@@ -25,10 +25,10 @@ class State(Enum):
     snagging = 2
 
 class _Fisher:
-    def __init__(self, template, thresh):
+    def __init__(self, template, thresh, params):
         self.fge = imageprocessor.ForegroundExtractor([])
         self.cvt = imageprocessor.CSConverter()
-        self.cloc = imageprocessor.CircleLocator()
+        self.cloc = imageprocessor.CircleLocator(params)
         self.tmatch = imageprocessor.TemplateMatcher(template, thresh)
 
     def snag(self, image):
@@ -53,6 +53,7 @@ if __name__ == "__main__":
     general = config['General']
     threshold = config['Threshold']
     templates = config['Templates']
+    hcircles = config['HoughCircles']
 
     fps = int(general['FPS'])
 
@@ -61,6 +62,13 @@ if __name__ == "__main__":
     t_dstreak = int(threshold['Deadlock_Streak'])
 
     frod_temp = str(templates['FRod_Template'])
+
+    hc_params = []
+
+    hc_params.append(int(hcircles['Param1']))
+    hc_params.append(int(hcircles['Param2']))
+    hc_params.append(int(hcircles['Minr']))
+    hc_params.append(int(hcircles['Maxr']))
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug",
@@ -99,14 +107,27 @@ if __name__ == "__main__":
     time_ref = None
     db_disp = None
     dstreak = 0
-    fisher = _Fisher(frod_path, t_frod)
+    fisher = _Fisher(frod_path, t_frod, hc_params)
+    canvas = None
+
+    if args.debug:
+        cw, ch = CATCH_AREA_DIMS
+        canvas = imageprocessor.Canvas("debug", cw, ch)
    
     while True:
         if args.verbose == 1:
             if prev_state != state:
                 logger.info(str(state))
             prev_state = state
-        
+
+        if args.debug:
+            frame = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
+            canvas.store(frame)
+            spot = fisher.spot(frame)
+            if spot is not None:
+                canvas.draw_circle(spot)
+            canvas.display()
+            
         if state == State.pick_bait:
             time_ref = datetime.now()
             frame = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
