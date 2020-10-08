@@ -11,7 +11,7 @@ from time import sleep
 from datetime import datetime
 
 VERSION = "RISTRETTO (v0.6)"
-FIRST_BAIT_APOS = (133, 586) #101, 553:65x65 + 11x65
+FIRST_BAIT_APOS = (132, 586) # by 74 inc-x
 
 CATCH_AREA_POINTS = 500, 130
 CATCH_AREA_DIMS = 475, 350
@@ -71,11 +71,15 @@ if __name__ == "__main__":
     hc_params.append(int(hcircles['Maxr']))
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--debug",
+    parser.add_argument("-D", "--debug",
         help="turns on debug mode", action="store_true")
-    parser.add_argument("-v", "--verbose",
+    parser.add_argument("-V", "--verbose",
         help="shows state and compute time of \
                 compute-intensive functions", type=int, default=1)
+    parser.add_argument("-I", "--index",
+        help="uses specified bait index as bait", type=int, default=1)
+    parser.add_argument("-R", "--rounds",
+        help="defines the number of iterations to run", type=int, default=sys.maxsize)
     args = parser.parse_args()
 
     print("\nPetPals - Catch of the Day")
@@ -91,6 +95,8 @@ if __name__ == "__main__":
         print("\tDebug Mode: %s" % args.debug)
         print("\tVerbose Level: %d" % args.verbose)
         print("\tDeadlock Streak Threshold: %s" % t_dstreak)
+        print("\tBait index: %d" % args.index)
+        print("\tFishing rounds: %d" % args.rounds)
     
     print("\n")
     sys.stdout.flush()
@@ -109,12 +115,13 @@ if __name__ == "__main__":
     dstreak = 0
     fisher = _Fisher(frod_path, t_frod, hc_params)
     canvas = None
+    sess_round = 0
 
     if args.debug:
         cw, ch = CATCH_AREA_DIMS
         canvas = imageprocessor.Canvas("debug", cw, ch)
    
-    while True:
+    while True and (sess_round <= args.rounds):
         if args.verbose == 1:
             if prev_state != state:
                 logger.info(str(state))
@@ -133,7 +140,14 @@ if __name__ == "__main__":
             frame = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
             spot = fisher.spot(frame)
             if spot is not None:
-                bstacks.click(FIRST_BAIT_APOS)
+                sess_round = sess_round + 1
+                if sess_round > args.rounds:
+                    break
+                print("")
+                logger.info("Fishing Round: %d", sess_round)
+                bx, by = FIRST_BAIT_APOS
+                bx = bx + ((args.index - 1) * 74)
+                bstacks.click((bx, by))
                 x, y, r = spot
                 bstacks.click(CATCH_AREA_POINTS, (x,y))
                 state = State.waiting
@@ -143,6 +157,7 @@ if __name__ == "__main__":
             seconds = delta.total_seconds()
             if (seconds) > t_wait:
                 dstreak = dstreak + 1
+                sess_round = sess_round - 1
                 if dstreak > t_dstreak: 
                     logger.info("Deadlock threshold passed, quitting program...")
                     break
@@ -168,3 +183,6 @@ if __name__ == "__main__":
                     bstacks.click(CATCH_AREA_POINTS, (x, y))
             
         sleep(1/fps)
+
+    print("")
+    logger.info("Program Terminated with code: 0")

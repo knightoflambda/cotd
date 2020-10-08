@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Refactor code to meet MVC standards in GUI implementation
 - Improve template matching accuracy for baiting, might use SSIM
 
+## [0.6.2] - 2020-08-10
+
+### Added
+
+- Created parameters to set number of baits and bait index 
+
 ## [0.6.1] - 2020-09-21
 
 ### Added
