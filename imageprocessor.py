@@ -30,27 +30,39 @@ class CSConverter:
     def __init__(self):
         pass
 
+    def bgr2gray(self, image):
+        return cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+
     def bgr2ihsv(self, image, channel):
         return cv.cvtColor(image, cv.COLOR_BGR2HSV)[:, :, channel]
+
+
+""" class ImageSubtractor:
+    def __init__(self, source: str, coords: tuple, dims: tuple):
+        self.sub = cv.imread(source)
+        self.coords = coords
+        self.dims = dims
+
+    def subtract(self, image):
+         """
+
+class MoonDestroyer:
+    def __init__(self):
+        pass
+    
+    def destroy(self, image):
+        start_point = (290, 0) 
+        end_point = (475, 50) 
+        return cv.rectangle(image, start_point, end_point, (0,0,0), -1)
+   
 
 class ForegroundExtractor:
     def __init__(self, colors: list):
         # test data
         colors = [ # bgr format
-            [229, 215, 133],
-            [237, 231, 156],
-            [244, 241, 180], 
-            [255, 253, 241], # +-5
-            [254, 247, 214],
-            [255, 234, 182],
-            [222, 216, 87],
-            [167, 146, 64],
-            [195, 181, 68],
-            # left - up
-            [134, 65, 56],
-            [224, 208, 201],
-            [237, 232, 231],
-            [192, 167, 157]
+            [239,239,197],
+            [178,178,132],
+            [224,224,174]
         ]
 
         self._colors = colors
@@ -60,7 +72,7 @@ class ForegroundExtractor:
         masks = np.zeros((height,width), np.uint8)
         
         for color in self._colors:
-            mask = cv.inRange(image, np.array([x - 3 for x in color]), np.array([x + 3 for x in color]))
+            mask = cv.inRange(image, np.array([x - 5 for x in color]), np.array([x + 5 for x in color]))
             masks = cv.bitwise_or(masks, mask)
         
         image[masks > 0] = (0,0,0)

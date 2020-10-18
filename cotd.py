@@ -26,7 +26,8 @@ class State(Enum):
 
 class _Fisher:
     def __init__(self, template, thresh, params):
-        self.fge = imageprocessor.ForegroundExtractor([])
+        #self.fge = imageprocessor.ForegroundExtractor([])
+        self.md = imageprocessor.MoonDestroyer()
         self.cvt = imageprocessor.CSConverter()
         self.cloc = imageprocessor.CircleLocator(params)
         self.tmatch = imageprocessor.TemplateMatcher(template, thresh)
@@ -35,8 +36,9 @@ class _Fisher:
         return self.tmatch.is_match(image)
 
     def spot(self, image): 
-        fg = self.fge.extract(image)
-        imat = self.cvt.bgr2ihsv(fg, 1)
+        #fg = self.fge.extract(image)
+        imat = self.cvt.bgr2gray(image)#self.cvt.bgr2ihsv(image, 0)
+        imat = self.md.destroy(imat)
         circle = self.cloc.locate(imat)
 
         return circle
@@ -143,7 +145,6 @@ if __name__ == "__main__":
                 sess_round = sess_round + 1
                 if sess_round > args.rounds:
                     break
-                print("")
                 logger.info("Fishing Round: %d", sess_round)
                 bx, by = FIRST_BAIT_APOS
                 bx = bx + ((args.index - 1) * 74)

@@ -1,13 +1,14 @@
 import cv2 as cv
 import argparse
-import cotd
-
+AREA_POINTS = 790, 130
+AREA_DIMS = 185, 43
 from windowwrapper import Window
 
 if __name__ == "__main__":
     bstacks = Window("BlueStacks")
-    x, y = cotd.FROD_AREA_POINTS
-    w, h = cotd.FROD_AREA_DIMS
+    bstacks.fix_wpos()
+    x, y = AREA_POINTS
+    w, h = AREA_DIMS
 
     frame = bstacks.screenshot2mat((x, y), (w, h))
-    cv.imwrite("./res/frod_beach.jpg", frame)
+    cv.imwrite("./res/half_moon.jpg", frame)
