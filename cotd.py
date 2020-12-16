@@ -10,14 +10,16 @@ from enum import Enum
 from time import sleep
 from datetime import datetime
 
-VERSION = "RISTRETTO (v0.6)"
+VERSION = "CORTADO (v0.7)"
 FIRST_BAIT_APOS = (132, 586) # by 74 inc-x
 
 CATCH_AREA_POINTS = 500, 130
-CATCH_AREA_DIMS = 475, 350
+CATCH_AREA_DIMS = 454, 350 #old value = 475, 350
 
 FROD_AREA_POINTS = 230, 532
 FROD_AREA_DIMS = 74, 74
+
+import cv2
 
 class State(Enum):
     pick_bait = 0
@@ -26,9 +28,11 @@ class State(Enum):
 
 class _Fisher:
     def __init__(self, template, thresh, params):
-        #self.fge = imageprocessor.ForegroundExtractor([])
-        self.md = imageprocessor.MoonDestroyer()
+        self.fge = imageprocessor.ForegroundExtractor([])
+        #self.md = imageprocessor.MoonDestroyer()
         self.cvt = imageprocessor.CSConverter()
+        self.th = imageprocessor.Threshold()
+        self.clc = imageprocessor.ContourLocator()
         self.cloc = imageprocessor.CircleLocator(params)
         self.tmatch = imageprocessor.TemplateMatcher(template, thresh)
 
@@ -37,11 +41,14 @@ class _Fisher:
 
     def spot(self, image): 
         #fg = self.fge.extract(image)
-        imat = self.cvt.bgr2gray(image)#self.cvt.bgr2ihsv(image, 0)
-        imat = self.md.destroy(imat)
+        imat = self.cvt.bgr2ihsv(image, 1)
+        imat = self.th.thresh(imat)
+        #imat = self.md.destroy(imat)
         circle = self.cloc.locate(imat)
+        #circle = self.clc.locate(imat)
+        #cv2.imwrite("./res/fg_imat_test.jpg", imat)
 
-        return circle
+        return circle, imat
 
 
 if __name__ == "__main__":
@@ -124,6 +131,7 @@ if __name__ == "__main__":
         canvas = imageprocessor.Canvas("debug", cw, ch)
    
     while True and (sess_round <= args.rounds):
+        sleep(0.1)
         if args.verbose == 1:
             if prev_state != state:
                 logger.info(str(state))
@@ -131,16 +139,14 @@ if __name__ == "__main__":
 
         if args.debug:
             frame = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
-            canvas.store(frame)
-            spot = fisher.spot(frame)
-            if spot is not None:
-                canvas.draw_circle(spot)
-            canvas.display()
+            spot, frame = fisher.spot(frame)
+            canvas.display(frame, spot)
             
         if state == State.pick_bait:
+            sleep(1)
             time_ref = datetime.now()
             frame = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
-            spot = fisher.spot(frame)
+            spot, _ = fisher.spot(frame)
             if spot is not None:
                 sess_round = sess_round + 1
                 if sess_round > args.rounds:
@@ -149,7 +155,7 @@ if __name__ == "__main__":
                 bx, by = FIRST_BAIT_APOS
                 bx = bx + ((args.index - 1) * 74)
                 bstacks.click((bx, by))
-                x, y, r = spot
+                x, y, _ = spot
                 bstacks.click(CATCH_AREA_POINTS, (x,y))
                 state = State.waiting
 
@@ -178,9 +184,9 @@ if __name__ == "__main__":
                 state = State.pick_bait
             else:
                 spot_frame = bstacks.screenshot2mat(CATCH_AREA_POINTS, CATCH_AREA_DIMS)
-                spot = fisher.spot(spot_frame)
+                spot, _ = fisher.spot(spot_frame)
                 if spot is not None:
-                    x, y, r = spot
+                    x, y, _ = spot
                     bstacks.click(CATCH_AREA_POINTS, (x, y))
             
         sleep(1/fps)

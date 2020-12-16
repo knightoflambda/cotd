@@ -5,6 +5,22 @@ from cotd import CATCH_AREA_DIMS
 CATCH_CIRCLE_R = (66, 70)
 FROD_CIRCLE_R = (34, 36)
 
+class ContourLocator:
+    def __init__(self):
+        pass
+
+    def locate(self, imat):
+        contours, _ = cv.findContours(imat, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        lcnt = None
+        if len(contours) > 0:
+            largest = max(contours, key=cv.contourArea)
+            x,y,w,h = cv.boundingRect(largest)
+            cX = x + (w/2)
+            cY = y + (h/2)
+            lcnt = (int(cX), int(cY))
+
+        return lcnt
+
 class CircleLocator:
     def __init__(self, params: list):
         self._p1 = params[0]
@@ -46,6 +62,16 @@ class CSConverter:
     def subtract(self, image):
          """
 
+class Threshold:
+    def __init__(self):
+        pass
+
+    def thresh(self, imat):
+        blur = cv.GaussianBlur(imat,(5,5),0)
+        _, th = cv.threshold(blur, 220, 255, cv.THRESH_BINARY)
+        return th
+
+
 class MoonDestroyer:
     def __init__(self):
         pass
@@ -60,9 +86,15 @@ class ForegroundExtractor:
     def __init__(self, colors: list):
         # test data
         colors = [ # bgr format
-            [239,239,197],
-            [178,178,132],
-            [224,224,174]
+            [172,145,241],
+            [127,83,200],
+            [181,157,251],
+            [223, 200, 254],
+            [248, 238, 254],
+            [137, 97, 209],
+            [172, 145, 241],
+            [216, 200, 254],
+            [179, 154, 246]
         ]
 
         self._colors = colors
@@ -98,13 +130,10 @@ class Canvas:
         cv.waitKey(1)
 
 
-    def display(self):
-        cv.imshow(self._winname, self._image)
+    def display(self, frame, xyr):
+        frame = cv.cvtColor(frame,cv.COLOR_GRAY2RGB)
+        if xyr is not None:
+            x, y, r = xyr
+            cv.circle(frame, (x, y), r, (0,0,255))
+        cv.imshow(self._winname, frame)
         cv.waitKey(1)
-
-    def store(self, image):
-        self._image = image
-
-    def draw_circle(self, xyr):
-        x, y, r = xyr
-        self._image = cv.circle(self._image, (x, y), r, (0,0,255))
